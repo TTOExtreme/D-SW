@@ -9,39 +9,48 @@
 
     td {
         vertical-align: top;
+        border: none;
     }
 
-    tr {}
+    tr {
+        border: none;
+    }
+
+    .div {
+        border: none;
+    }
 
     table {}
 </style>
 
 <body>
-    <div name="principal">
+    <div class="div" name="principal">
         <table>
             <tr>
                 <td>
-                    <div id="logo"><img src="img/logo.png" width="150px"></div>
+                    <div class="div" id="logo"><img
+                            src="https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/logo.png" width="150px"></div>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <div id="info">
+                    <div class="div" id="info">
                         <table>
                             <tr>
-                                <td>
-                                    <p id="City-Name"></p>
-                                    <p id="Date"></p>
+                                <td colspan="2">
+                                    <p id="City-Name">Carregando...</p>
                                 </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <p id="Estado-Ceu"></p>
-                                    <img id="Estado-Ceu-Img" width="100px">
+                                    <p id="Estado-Ceu">Carregando...</p>
+                                    <img id="Estado-Ceu-Img"
+                                        rc="https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/Limpo.png"
+                                        width="100px">
                                 </td>
                                 <td>
                                     <p id="Temperatura-Title">Temperatura</p>
-                                    <p id="Temperatura" style="font-size: 30pt;margin-top: -16px;"></p>
+                                    <p id="Temperatura" style="font-size: 30pt;margin-top: -16px;">00.0 °C</p>
                                 </td>
                             </tr>
                             <tr>
@@ -49,10 +58,10 @@
 
                                 </td>
                                 <td>
-
-                                    <div style="margin-top: -75px;margin-left: 35px;">
-                                        <p id="Indice-Title">Indice</p>
-                                        <img id="IndiceUV-Img" width="40px"></img>
+                                    <div class="div" style="margin-top: -25px;margin-left: 25px;">
+                                        <p id="Indice-Title">Indice UV</p>
+                                        <img src="https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/1.png"
+                                            id="IndiceUV-Img" width="40px">
                                     </div>
                                 </td>
                             </tr>
@@ -60,8 +69,8 @@
                     </div>
                 </td>
                 <td>
-                    <div>
-                        <img src="img/Indices.png" width="500px">
+                    <div class="div">
+                        <img src="https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/Indices.png" width="500px">
                     </div>
                 </td>
             </tr>
@@ -71,53 +80,54 @@
 
     <script>
         function GetJson(url, callback) {
-            let xmlhttp = new XMLHttpRequest();
-
-            xmlhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    try {
-                        let myArr = JSON.parse(this.responseText);
-                        callback(myArr);
-                    } catch (err) {
-                        callback(this.responseText);
-                    }
+            fetch(url).then(function (resp) {
+                if (resp.status == 200) {
+                    resp.text()
+                        .then(data => {
+                            callback(data)
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        })
                 }
-            };
-            xmlhttp.open("GET", url, true);
-            xmlhttp.send();
+            }).catch(function (err) {
+                console.log(err);
+            })
         }
 
         function GetData(latitude, longitude) {
             let clime = { Thunderstorm: "Tempestade", Clouds: "Nublado", Drizzle: "Chuvisco", Rain: "Chuva", Snow: "Neve", Clear: "Limpo" }
 
 
-            GetJson("http://api.openweathermap.org/data/2.5/forecast?lon=" + longitude + "&lat=" + latitude + "&appid=3030ba02f7caa0348e2dc3d2e60ba949",
+            GetJson("https://api.openweathermap.org/data/2.5/forecast?lon=" + longitude + "&lat=" + latitude + "&appid=3030ba02f7caa0348e2dc3d2e60ba949",
                 (response) => {
+                    response = JSON.parse(response);
                     document.getElementById("Temperatura").innerHTML = ((response["list"][0]["main"]["temp"] / 10).toFixed(1)) + " °C";
                     document.getElementById("City-Name").innerHTML = ((response["city"]["name"]));
 
                     if (clime[response["list"][0]["weather"][0]["main"]]) {
                         document.getElementById("Estado-Ceu").innerHTML = clime[response["list"][0]["weather"][0]["main"]];
-                        document.getElementById("Estado-Ceu-Img").setAttribute("src", "img/" + clime[response["list"][0]["weather"][0]["main"]] + ".png")
+                        document.getElementById("Estado-Ceu-Img").setAttribute("src", "https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/" + clime[response["list"][0]["weather"][0]["main"]] + ".png")
                     } else {
                         document.getElementById("Estado-Ceu").innerHTML = response["list"][0]["weather"][0]["main"];
-                        document.getElementById("Estado-Ceu-Img").setAttribute("src", "img/" + response["list"][0]["weather"][0]["main"] + ".png")
+                        document.getElementById("Estado-Ceu-Img").setAttribute("src", "https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/" + response["list"][0]["weather"][0]["main"] + ".png")
                     }
 
                 });
 
-            GetJson("http://api.openweathermap.org/data/2.5/uvi/forecast?lon=" + longitude + "&lat=" + latitude + "&appid=3030ba02f7caa0348e2dc3d2e60ba949",
+            GetJson("https://api.openweathermap.org/data/2.5/uvi/forecast?lon=" + longitude + "&lat=" + latitude + "&appid=3030ba02f7caa0348e2dc3d2e60ba949",
                 (response) => {
+                    response = JSON.parse(response);
                     if (response[0]["value"] > 11) {
-                        document.getElementById("IndiceUV-Img").setAttribute("src", "img/11.png")
+                        document.getElementById("IndiceUV-Img").setAttribute("src", "https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/11.png")
                     } else {
-                        document.getElementById("IndiceUV-Img").setAttribute("src", "img/" + (response[0]["value"]).toFixed(0) + ".png")
+                        document.getElementById("IndiceUV-Img").setAttribute("src", "https://cdn.awsli.com.br/1000x5000/992/992433/arquivos/" + (response[0]["value"]).toFixed(0) + ".png")
                     }
                 });
         }
 
         function GetLocation(ip, callback) {
-            GetJson('https://api.hackertarget.com/geoip/?q=' + ip, function (data) {
+            GetJson('https://ipapi.co/' + ip + "/json/", function (data) {
                 callback(data)
             });
         }
@@ -128,10 +138,8 @@
         }
         GetIP(ip => {
             GetLocation(ip, res => {
-                let lines = res.split("\n")
-                let lat = parseFloat(lines[4].replace("Latitude: ", ""));
-                let lon = parseFloat(lines[5].replace("Longitude: ", ""));
-                GetData(lat, lon);
+                res = JSON.parse(res);
+                GetData(res.latitude, res.longitude);
             })
         })
     </script>
