@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<head></head>
+<style>
+    div {
+        font-size: 12pt;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    }
+
+    td {
+        vertical-align: top;
+    }
+
+    tr {}
+
+    table {}
+</style>
+
+<body>
+    <div name="principal">
+        <table>
+            <tr>
+                <td>
+                    <div id="logo"><img src="img/logo.png" width="150px"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="info">
+                        <table>
+                            <tr>
+                                <td>
+                                    <p id="City-Name"></p>
+                                    <p id="Date"></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p id="Estado-Ceu"></p>
+                                    <img id="Estado-Ceu-Img" width="100px">
+                                </td>
+                                <td>
+                                    <p id="Temperatura-Title">Temperatura</p>
+                                    <p id="Temperatura" style="font-size: 30pt;margin-top: -16px;"></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+
+                                </td>
+                                <td>
+
+                                    <div style="margin-top: -75px;margin-left: 35px;">
+                                        <p id="Indice-Title">Indice</p>
+                                        <img id="IndiceUV-Img" width="40px"></img>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <img src="img/Indices.png" width="500px">
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <script>
+        function GetJson(url, callback) {
+            let xmlhttp = new XMLHttpRequest();
+
+            xmlhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    try {
+                        let myArr = JSON.parse(this.responseText);
+                        callback(myArr);
+                    } catch (err) {
+                        callback(this.responseText);
+                    }
+                }
+            };
+            xmlhttp.open("GET", url, true);
+            xmlhttp.send();
+        }
+
+        function GetData(latitude, longitude) {
+            let clime = { Thunderstorm: "Tempestade", Clouds: "Nublado", Drizzle: "Chuvisco", Rain: "Chuva", Snow: "Neve", Clear: "Limpo" }
+
+
+            GetJson("http://api.openweathermap.org/data/2.5/forecast?lon=" + longitude + "&lat=" + latitude + "&appid=3030ba02f7caa0348e2dc3d2e60ba949",
+                (response) => {
+                    document.getElementById("Temperatura").innerHTML = ((response["list"][0]["main"]["temp"] / 10).toFixed(1)) + " °C";
+                    document.getElementById("City-Name").innerHTML = ((response["city"]["name"]));
+
+                    if (clime[response["list"][0]["weather"][0]["main"]]) {
+                        document.getElementById("Estado-Ceu").innerHTML = clime[response["list"][0]["weather"][0]["main"]];
+                        document.getElementById("Estado-Ceu-Img").setAttribute("src", "img/" + clime[response["list"][0]["weather"][0]["main"]] + ".png")
+                    } else {
+                        document.getElementById("Estado-Ceu").innerHTML = response["list"][0]["weather"][0]["main"];
+                        document.getElementById("Estado-Ceu-Img").setAttribute("src", "img/" + response["list"][0]["weather"][0]["main"] + ".png")
+                    }
+
+                });
+
+            GetJson("http://api.openweathermap.org/data/2.5/uvi/forecast?lon=" + longitude + "&lat=" + latitude + "&appid=3030ba02f7caa0348e2dc3d2e60ba949",
+                (response) => {
+                    if (response[0]["value"] > 11) {
+                        document.getElementById("IndiceUV-Img").setAttribute("src", "img/11.png")
+                    } else {
+                        document.getElementById("IndiceUV-Img").setAttribute("src", "img/" + (response[0]["value"]).toFixed(0) + ".png")
+                    }
+                });
+        }
+
+        function GetLocation(ip, callback) {
+            GetJson('https://api.hackertarget.com/geoip/?q=' + ip, function (data) {
+                callback(data)
+            });
+        }
+        function GetIP(callback) {
+            GetJson('https://api.ipify.org', function (data) {
+                callback(data)
+            });
+        }
+        GetIP(ip => {
+            GetLocation(ip, res => {
+                let lines = res.split("\n")
+                let lat = parseFloat(lines[4].replace("Latitude: ", ""));
+                let lon = parseFloat(lines[5].replace("Longitude: ", ""));
+                GetData(lat, lon);
+            })
+        })
+    </script>
+</body>
